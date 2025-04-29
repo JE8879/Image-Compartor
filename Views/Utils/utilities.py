@@ -1,3 +1,4 @@
+import json
 from PyQt6.QtWidgets import QMessageBox
 
 class Utilities:
@@ -13,4 +14,11 @@ class Utilities:
         msg.setWindowTitle("Information")
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
         msg.exec()
-        
+
+    @staticmethod
+    def load_json_settings():
+        folder_path = 'Views/Settings/settings.json'
+
+        with open(folder_path, 'r') as file:
+            settings = json.load(file)
+        return settings
