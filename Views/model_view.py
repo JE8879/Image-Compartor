@@ -1,11 +1,15 @@
 import os
 import sys
+from watchdog.observers import Observer
 from PyQt6 import uic
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication, QFileSystemModel
 from PyQt6.QtWidgets import QPushButton, QLabel, QApplication, QWidget, QProgressBar, QRadioButton, QSpinBox, QLineEdit, QTreeView
 
 from .Utils.utilities import Utilities
+from .Utils.change_handler import ChangeHandler
+from .Core.type_capture import TypeCapture
+from .Core.video_processing_handler import VideoProccessingHandler
 
 class ModelView(QWidget):
     # Constructor
@@ -62,6 +66,7 @@ class ModelView(QWidget):
 
     def manage_signals(self):
         self.btn_generate_model.clicked.connect(self.generate_model)
+        self.btn_begin_image_capture.clicked.connect(self.start_camera)
 
     def load_directories(self):
         self.model = QFileSystemModel()
@@ -77,10 +82,52 @@ class ModelView(QWidget):
             os.mkdir(self.models_path)
             # Show message 
             Utilities.show_message(message=f"Model {self.model_name.text()} created successfully")
+            # Set the model name
             self.models_path += "/"
+            # Start observer
+            #self.start_change_handler()
         else:
             Utilities.show_message(message="The Model name is required")
 
+    def start_camera(self):
+
+        if self.rdb_time_based.isChecked() and self.spin_time_based.value() != 0:
+
+            images_per_secod = 29
+            total_images = self.spin_time_based.value() * images_per_secod
+            print(f"Imagenes Totales {total_images}")
+            
+            self.image_processing_instance = VideoProccessingHandler(
+                lbl_camera=self.lbl_main_screen,
+                type_capture=TypeCapture.Time,
+                path_to_save=self.models_path,
+                capture_duration=self.spin_time_based.value()
+            )
+            self.image_processing_instance.start_video_capture()
+            self.start_change_handler()
+         
+        if self.rdb_quantity_based.isChecked() and self.spin_quantity_based.value() != 0:
+
+            #self.image_progressBar.setMaximum(self.spin_quantity_based.value())
+            self.image_processing_instance = VideoProccessingHandler(
+                lbl_camera=self.lbl_main_screen,
+                type_capture=TypeCapture.Quantity,
+                path_to_save=self.models_path,
+                total_images=self.spin_quantity_based.value()
+            )
+            self.image_processing_instance.start_video_capture()
+
+            self.start_change_handler()
+
+
+    def start_change_handler(self):
+        # Show progress bar
+        self.image_progressBar.setVisible(True)
+        self.event_handler = ChangeHandler(self.image_progressBar)
+        self.observer = Observer()
+
+        self.observer.schedule(self.event_handler, path=self.models_path, recursive=False)
+        self.observer.start()
 
 if __name__ == '__main__':
 

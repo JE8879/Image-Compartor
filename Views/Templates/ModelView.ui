@@ -136,18 +136,21 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="maximum">
+         <number>3</number>
+        </property>
        </widget>
       </item>
       <item row="1" column="6">
        <widget class="QProgressBar" name="image_progressBar">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
         <property name="value">
-         <number>24</number>
+         <number>0</number>
         </property>
        </widget>
       </item>

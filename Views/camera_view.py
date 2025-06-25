@@ -6,8 +6,8 @@ from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import QPushButton, QLabel, QApplication, QWidget, QTabWidget, QVBoxLayout, QFileDialog
 
 from .Core.video_processing_handler import VideoProccessingHandler
+from .Core.type_capture import TypeCapture
 from .Utils.utilities import Utilities
-
 
 class CameraView(QWidget):
     # Constructor
@@ -41,7 +41,12 @@ class CameraView(QWidget):
         self.move(qr.topLeft())
 
     def start_camera(self):
-        self.processing_instance = VideoProccessingHandler(lbl_camera=self.lbl_screen)
+        
+        self.processing_instance = VideoProccessingHandler(
+            lbl_camera=self.lbl_screen,
+            type_capture=TypeCapture.General
+        )
+
         self.processing_instance.start_video_capture()        
         self.btn_launch_camera.setEnabled(False)
 
