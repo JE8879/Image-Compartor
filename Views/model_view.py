@@ -21,7 +21,7 @@ class ModelView(QWidget):
 
         # Load Settings
         json_settins = Utilities.load_json_settings()
-        self.models_path = json_settins['directories']['models']
+        self.models_path = json_settins['directories']['windows-models']
 
         self.draw_components()
         self.load_directories()
@@ -44,9 +44,7 @@ class ModelView(QWidget):
         self.spin_quantity_based = self.findChild(QSpinBox, 'spin_quantity_based')
         self.spin_time_based = self.findChild(QSpinBox, 'spin_time_based')
 
-        self.image_progressBar = self.findChild(QProgressBar, 'image_progressBar')
-        self.image_progressBar.setValue(0)
-        self.image_progressBar.setVisible(False)
+        self.lbl_images_created = self.findChild(QLabel, 'lbl_images_created')
 
         self.images_root = self.findChild(QTreeView, 'images_root')
     
@@ -85,17 +83,13 @@ class ModelView(QWidget):
             # Set the model name
             self.models_path += "/"
             # Start observer
-            #self.start_change_handler()
+            self.start_change_handler()
         else:
             Utilities.show_message(message="The Model name is required")
 
     def start_camera(self):
 
         if self.rdb_time_based.isChecked() and self.spin_time_based.value() != 0:
-
-            images_per_secod = 29
-            total_images = self.spin_time_based.value() * images_per_secod
-            print(f"Imagenes Totales {total_images}")
             
             self.image_processing_instance = VideoProccessingHandler(
                 lbl_camera=self.lbl_main_screen,
@@ -104,11 +98,9 @@ class ModelView(QWidget):
                 capture_duration=self.spin_time_based.value()
             )
             self.image_processing_instance.start_video_capture()
-            self.start_change_handler()
          
         if self.rdb_quantity_based.isChecked() and self.spin_quantity_based.value() != 0:
 
-            #self.image_progressBar.setMaximum(self.spin_quantity_based.value())
             self.image_processing_instance = VideoProccessingHandler(
                 lbl_camera=self.lbl_main_screen,
                 type_capture=TypeCapture.Quantity,
@@ -117,13 +109,8 @@ class ModelView(QWidget):
             )
             self.image_processing_instance.start_video_capture()
 
-            self.start_change_handler()
-
-
     def start_change_handler(self):
-        # Show progress bar
-        self.image_progressBar.setVisible(True)
-        self.event_handler = ChangeHandler(self.image_progressBar)
+        self.event_handler = ChangeHandler(self.lbl_images_created)
         self.observer = Observer()
 
         self.observer.schedule(self.event_handler, path=self.models_path, recursive=False)

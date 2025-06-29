@@ -1,5 +1,6 @@
 {
     "directories": {
-        "models": "/home/mr-robot/Imágenes/Template-Images/"
+        "ubuntu-models": "/home/mr-robot/Imágenes/Template-Images/",
+        "windows-models": "C:/Users/WorkStation/Pictures/Captures-Image-Models/"
     }
 }

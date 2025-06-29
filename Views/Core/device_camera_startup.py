@@ -1,10 +1,11 @@
 import cv2
 import time
+import platform
 from uuid import uuid4
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtCore import QThread, pyqtSignal, pyqtSlot
 
-from . type_capture import TypeCapture
+from . type_capture import TypeCapture, TypePlatform
 
 class DeviceCamera(QThread):
     # Signals
@@ -35,21 +36,29 @@ class DeviceCamera(QThread):
         self.wait()
 
     def run(self):
-        self._cap = cv2.VideoCapture(2, cv2.CAP_V4L2)
-        # self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        # self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        os = platform.system()
+
+        if os == TypePlatform.Windows.value:
+            self._cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        
+        else:
+            self._cap = cv2.VideoCapture(2, cv2.CAP_V4L2)
         self._cap.set(cv2.CAP_PROP_FPS, 60)
 
-        if self.type_capture == TypeCapture.General:
-            self.capture_general()
-
-        elif self.type_capture == TypeCapture.Time:
-            self.capture_by_time()
-
-        elif self.type_capture == TypeCapture.Quantity:
-            self.capture_by_quantity()
         
+        # Diccionario de funciones de captura
+        self.capture_options = {
+            TypeCapture.General : self.capture_general,
+            TypeCapture.Time    : self.capture_by_time,
+            TypeCapture.Quantity: self.capture_by_quantity
+        }
+
+        if self.type_capture in self.capture_options:
+            self.capture_options[self.type_capture]()
         self._cap.release()
+
 
     def capture_general(self):
 
@@ -91,7 +100,6 @@ class DeviceCamera(QThread):
         # for second, count in images_per_second.items():
         #     print(f"Segundo {second}: {count} imágenes")
 
-
     def capture_by_quantity(self):
         image_counter = 0
 
@@ -124,3 +132,4 @@ class DeviceCamera(QThread):
         q_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
         pixmap_image = QPixmap.fromImage(q_image)
         return pixmap_image
+

@@ -1,5 +1,5 @@
 import sys
-from screeninfo import get_monitors
+# from screeninfo import get_monitors
 from PyQt6 import uic
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QPushButton, QWidget, QApplication, QLabel
@@ -45,16 +45,16 @@ class MainView(QWidget):
         self.btn_create_images.clicked.connect(self.OpenCameraView)
         self.btn_create_model.clicked.connect(self.OpenModelView)
 
-    def get_screen_info(self):
-        monitors = get_monitors()
-        # Mostrar información de cada monitor
-        for i, monitor in enumerate(monitors, 1):
-            print(f"\nMonitor {i}:")
-            print(f"Resolución: {monitor.width}x{monitor.height} píxeles")
-            print(f"Posición: x={monitor.x}, y={monitor.y}")
-            if hasattr(monitor, 'name'):
-                print(f"Nombre: {monitor.name}")
-            print(f"Principal: {'Sí' if monitor.is_primary else 'No'}")
+    # def get_screen_info(self):
+    #     monitors = get_monitors()
+    #     # Mostrar información de cada monitor
+    #     for i, monitor in enumerate(monitors, 1):
+    #         print(f"\nMonitor {i}:")
+    #         print(f"Resolución: {monitor.width}x{monitor.height} píxeles")
+    #         print(f"Posición: x={monitor.x}, y={monitor.y}")
+    #         if hasattr(monitor, 'name'):
+    #             print(f"Nombre: {monitor.name}")
+    #         print(f"Principal: {'Sí' if monitor.is_primary else 'No'}")
 
     
     

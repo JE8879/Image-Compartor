@@ -7,25 +7,21 @@ class ChangeHandler(QObject, FileSystemEventHandler):
 
     # Constructor
     def __init__(self, 
-        progressbar = None):
+        lbl_progress = None):
         super(ChangeHandler, self).__init__()
 
         # Properties
         self.items_in_folder = 0
-        self.progressbar = progressbar
+        self.lbl_progress = lbl_progress
 
-        # Señal para actualizar el progressbar
+        # Conecta la señal a la función de actualización
         self.progress_signal.connect(self.update_progress)
 
     def on_created(self, event):
-        # print(f'Archivo creado: {event.src_path}')
-
         if(event.src_path):
             self.items_in_folder += 1
-            
             self.progress_signal.emit(self.items_in_folder)
 
     def update_progress(self, value):
-        
-        self.progressbar.setValue(value)
-       # print(f'Progress: {value}')
+       if self.lbl_progress is not None:
+            self.lbl_progress.setText(f"Archivos creados: {value}")
