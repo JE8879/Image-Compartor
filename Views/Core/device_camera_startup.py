@@ -10,6 +10,7 @@ from . type_capture import TypeCapture, TypePlatform
 class DeviceCamera(QThread):
     # Signals
     change_pixmap_signal = pyqtSignal(QPixmap)
+    complete_signal = pyqtSignal(str)
 
     # Constructor 
     def __init__(self, 
@@ -59,7 +60,6 @@ class DeviceCamera(QThread):
             self.capture_options[self.type_capture]()
         self._cap.release()
 
-
     def capture_general(self):
 
         while(self._run_flag):
@@ -70,9 +70,7 @@ class DeviceCamera(QThread):
 
     def capture_by_time(self):
         start_time = time.time()
-        last_second = -1
         self.list_images = []
-        images_per_second = {}
 
         while int(time.time() - start_time) < self.capture_duration:
             ret, cv_img = self._cap.read()
@@ -80,25 +78,12 @@ class DeviceCamera(QThread):
                 pixmap_image = self.convert_cv2_image_to_q_pixmap(cv_img)
                 self.change_pixmap_signal.emit(pixmap_image)
                 self.list_images.append(pixmap_image)
-            
-                # Contar imágenes por segundo
-        #         elapsed = int(time.time() - start_time)
-        #         if elapsed not in images_per_second:
-        #             images_per_second[elapsed] = 0
-        #         images_per_second[elapsed] += 1
-            
-        #     # Mostrar cuando cambia el segundo
-        #     if elapsed != last_second:
-        #         print(f"Segundo {elapsed}: {images_per_second[elapsed]} imágenes capturadas")
-        #         last_second = elapsed
-
-        # for image in self.list_images:
-        #     self.save_image(image, self.path_to_save)
     
-        # print(f"Total de imágenes: {len(self.list_images)}")
-        # print("Imágenes capturadas por segundo:")
-        # for second, count in images_per_second.items():
-        #     print(f"Segundo {second}: {count} imágenes")
+        for image in self.list_images:
+            self.save_image(image, self.path_to_save)
+
+        self.list_images = []
+        self.complete_signal.emit("Capture completed")
 
     def capture_by_quantity(self):
         image_counter = 0
@@ -116,6 +101,7 @@ class DeviceCamera(QThread):
             self.save_image(image, self.path_to_save)
         
         self.list_images = []
+        self.complete_signal.emit("Capture completed")
 
     def save_image(self, pixmap_image, path):
         full_path = f"{path}{self.generate_image_name()}.png"
@@ -132,4 +118,3 @@ class DeviceCamera(QThread):
         q_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
         pixmap_image = QPixmap.fromImage(q_image)
         return pixmap_image
-

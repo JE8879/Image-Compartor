@@ -1,14 +1,14 @@
 import os
 import sys
+import platform
 from watchdog.observers import Observer
 from PyQt6 import uic
-from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication, QFileSystemModel
-from PyQt6.QtWidgets import QPushButton, QLabel, QApplication, QWidget, QProgressBar, QRadioButton, QSpinBox, QLineEdit, QTreeView
+from PyQt6.QtWidgets import QPushButton, QLabel, QApplication, QWidget, QRadioButton, QSpinBox, QLineEdit, QTreeView
 
 from .Utils.utilities import Utilities
 from .Utils.change_handler import ChangeHandler
-from .Core.type_capture import TypeCapture
+from .Core.type_capture import TypeCapture, TypePlatform
 from .Core.video_processing_handler import VideoProccessingHandler
 
 class ModelView(QWidget):
@@ -19,10 +19,8 @@ class ModelView(QWidget):
         self.main_window = main_window
         self.processing_instance = None
 
-        # Load Settings
-        json_settins = Utilities.load_json_settings()
-        self.models_path = json_settins['directories']['windows-models']
-
+        self.main_sys_path = self.get_sys_path()
+        
         self.draw_components()
         self.load_directories()
         self.manage_signals()
@@ -68,33 +66,42 @@ class ModelView(QWidget):
 
     def load_directories(self):
         self.model = QFileSystemModel()
-        self.model.setRootPath(self.models_path)
+        self.model.setRootPath(self.main_sys_path)
         self.images_root.setModel(self.model)
-        self.images_root.setRootIndex(self.model.index(self.models_path))
+        self.images_root.setRootIndex(self.model.index(self.main_sys_path))
 
     def generate_model(self):
         if(len(self.model_name.text()) != 0):
             # Create model name
-            self.models_path += self.model_name.text()
+            self.main_sys_path += self.model_name.text()
             # Create the directory with the same name
-            os.mkdir(self.models_path)
+            os.mkdir(self.main_sys_path)
             # Show message 
             Utilities.show_message(message=f"Model {self.model_name.text()} created successfully")
             # Set the model name
-            self.models_path += "/"
+            self.main_sys_path += "/"
             # Start observer
             self.start_change_handler()
+            # Disable Button
+            self.btn_generate_model.setDisabled(True)
         else:
             Utilities.show_message(message="The Model name is required")
 
     def start_camera(self):
+        if self.btn_generate_model.isEnabled():
+            Utilities.show_message("Please, first create a model")
+            return
 
         if self.rdb_time_based.isChecked() and self.spin_time_based.value() != 0:
             
             self.image_processing_instance = VideoProccessingHandler(
                 lbl_camera=self.lbl_main_screen,
                 type_capture=TypeCapture.Time,
-                path_to_save=self.models_path,
+                path_to_save=self.main_sys_path,
+
+                lbl_images_created=self.lbl_images_created,
+                model_name=self.model_name,
+                btn_generate_model=self.btn_generate_model,
                 capture_duration=self.spin_time_based.value()
             )
             self.image_processing_instance.start_video_capture()
@@ -104,17 +111,35 @@ class ModelView(QWidget):
             self.image_processing_instance = VideoProccessingHandler(
                 lbl_camera=self.lbl_main_screen,
                 type_capture=TypeCapture.Quantity,
-                path_to_save=self.models_path,
+                path_to_save=self.main_sys_path,
+
+                lbl_images_created=self.lbl_images_created,
+                model_name=self.model_name,
+                btn_generate_model=self.btn_generate_model,
                 total_images=self.spin_quantity_based.value()
             )
             self.image_processing_instance.start_video_capture()
+
 
     def start_change_handler(self):
         self.event_handler = ChangeHandler(self.lbl_images_created)
         self.observer = Observer()
 
-        self.observer.schedule(self.event_handler, path=self.models_path, recursive=False)
+        self.observer.schedule(self.event_handler, path=self.main_sys_path, recursive=False)
         self.observer.start()
+
+    def get_sys_path(self) -> str:
+        # Get current platform
+        currentPlatform = platform.system()
+        # Load Settings
+        json_settings = Utilities.load_json_settings()
+
+        if currentPlatform == TypePlatform.Linux.value:
+            system_path = json_settings['directories']['ubuntu-models']
+        else:
+            system_path = json_settings['directories']['windows-models']
+        return system_path
+
 
 if __name__ == '__main__':
 

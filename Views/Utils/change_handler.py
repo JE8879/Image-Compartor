@@ -24,4 +24,4 @@ class ChangeHandler(QObject, FileSystemEventHandler):
 
     def update_progress(self, value):
        if self.lbl_progress is not None:
-            self.lbl_progress.setText(f"Archivos creados: {value}")
+            self.lbl_progress.setText(f"Total images created: {value}")
